@@ -1,0 +1,12 @@
+# Sample Images for Nivolo Refind
+
+This directory contains sample product images for the marketplace.
+In a real implementation, these would be actual uploaded images.
+
+For demo purposes, we'll use placeholder images that represent:
+- leather-jacket-1.jpg, leather-jacket-2.jpg
+- macbook-1.jpg, macbook-2.jpg, macbook-3.jpg  
+- dining-table-1.jpg, dining-table-2.jpg
+- pokemon-cards-1.jpg, pokemon-cards-2.jpg
+- camera-lens-1.jpg, camera-lens-2.jpg
+- guitar-1.jpg, guitar-2.jpg, guitar-3.jpg
