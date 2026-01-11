@@ -63,7 +63,7 @@ const sampleProducts = [
     description: 'Beautiful acoustic guitar with rich sound. Perfect for beginners and professionals.',
     starting_bid: 299.99,
     listing_type: 'auction',
-    auction_end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+    auction_end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     image_path: '/uploads/guitar.jpg',
     seller_id: 1,
     status: 'approved'
@@ -73,7 +73,6 @@ const sampleProducts = [
 // Seed function
 async function seed() {
   return new Promise((resolve, reject) => {
-    // Check if listings already exist
     db.get('SELECT COUNT(*) as count FROM listings', (err, row) => {
       if (err) {
         console.error('❌ Error checking existing listings:', err);
@@ -85,7 +84,6 @@ async function seed() {
         return resolve();
       }
 
-      // Insert sample products
       const stmt = db.prepare(`
         INSERT INTO listings (
           user_id, title, description, price, starting_bid, 
@@ -129,7 +127,6 @@ async function seed() {
   });
 }
 
-// Run seed
 seed()
   .then(() => {
     db.close();
@@ -141,38 +138,3 @@ seed()
     db.close();
     process.exit(1);
   });
-```
-
----
-
-### Step 4: Commit the File
-
-1. Scroll down to **"Commit new file"**
-2. In the commit message box, type: `Add database seeding script`
-3. Click **"Commit new file"**
-
----
-
-### Step 5: Railway Will Auto-Redeploy
-
-1. Go back to Railway dashboard
-2. Watch the **Deployments** tab
-3. A new deployment should start automatically
-4. Watch the **Deploy Logs**
-
----
-
-### Step 6: Look for Success Messages in Logs
-
-You should see:
-```
-🌱 Starting database seeding...
-✅ Created listing: Vintage Leather Watch
-✅ Created listing: Designer Sunglasses
-✅ Created listing: Wireless Headphones
-✅ Created listing: Leather Handbag
-✅ Created listing: Running Shoes
-✅ Created listing: Acoustic Guitar
-🎉 Seeding complete! Added 6 products.
-✅ Database connection closed.
-Server running on port 5000
