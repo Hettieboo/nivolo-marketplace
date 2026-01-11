@@ -7,38 +7,36 @@ const dbPath = path.join(__dirname, 'database.sqlite');
 // Connect to database
 const db = new sqlite3.Database(dbPath);
 
-console.log('🌱 Starting database seeding...');
+console.log('🌱 Starting dynamic database seeding...');
 
-// Sample products to seed with Cloudinary URLs
-const sampleProducts = [
+// List of products to seed
+// Add new products here anytime without touching the script logic
+const productsToSeed = [
   {
     title: 'Vintage Leather Watch',
     description: 'Beautiful vintage leather watch in excellent condition.',
     price: 149.99,
     listing_type: 'fixed_price',
-    image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg',
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
+    image_url: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg'
   },
   {
     title: 'Designer Sunglasses',
     description: 'Premium designer sunglasses with UV protection. Stylish and durable.',
     price: 89.99,
     listing_type: 'fixed_price',
-    image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png',
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
+    image_url: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png'
   }
+  // Add more products here as needed
 ];
 
-// Seed function
+const SELLER_ID = 'b694dd70-620b-4c25-a4a6-b32874270dfc'; // Your admin/test user ID
+const STATUS = 'approved'; // Default status for seeded products
+
 async function seed() {
   return new Promise((resolve, reject) => {
+    // Check if database already has listings
     db.get('SELECT COUNT(*) as count FROM listings', (err, row) => {
-      if (err) {
-        console.error('❌ Error checking existing listings:', err);
-        return reject(err);
-      }
+      if (err) return reject(err);
 
       if (row.count > 0) {
         console.log(`✅ Database already has ${row.count} listings. Skipping seed.`);
@@ -53,11 +51,10 @@ async function seed() {
       `);
 
       let inserted = 0;
-      sampleProducts.forEach(product => {
-        const imagePaths = JSON.stringify([product.image_path]);
-
+      productsToSeed.forEach(product => {
+        const imagePaths = JSON.stringify([product.image_url]);
         stmt.run(
-          product.seller_id,
+          SELLER_ID,
           product.title,
           product.description,
           product.price || null,
@@ -65,7 +62,7 @@ async function seed() {
           product.listing_type,
           product.auction_end_time || null,
           imagePaths,
-          product.status,
+          STATUS,
           new Date().toISOString(),
           (err) => {
             if (err) {
@@ -75,7 +72,7 @@ async function seed() {
               console.log(`✅ Created listing: ${product.title}`);
             }
 
-            if (inserted === sampleProducts.length) {
+            if (inserted === productsToSeed.length) {
               stmt.finalize();
               console.log(`\n🎉 Seeding complete! Added ${inserted} products.`);
               resolve();
