@@ -111,7 +111,7 @@ app.get('/api/seed-demo', async (req, res) => {
 
       const stmt = db.prepare(`
         INSERT INTO listings (
-          user_id, title, description, price, starting_bid, 
+          seller_id, title, description, price, starting_bid, 
           listing_type, auction_end_time, image_paths, status, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
