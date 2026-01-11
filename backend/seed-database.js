@@ -1,32 +1,27 @@
 const sqlite3 = require('sqlite3').verbose();
 
 // Database path
-const db = new sqlite3.Database('./database.sqlite');
+const db = new sqlite3.Database('./backend/database.sqlite');
 
 console.log('🌱 Starting database seeding...');
 
-const sampleProducts = [
-  {
-    title: 'Vintage Leather Watch',
-    description: 'Beautiful vintage leather watch in excellent condition. Classic design with modern functionality.',
-    price: 149.99,
-    listing_type: 'fixed_price',
-    image_paths: ['https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg'],
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
-  },
-  {
-    title: 'Designer Sunglasses',
-    description: 'Premium designer sunglasses with UV protection. Stylish and durable.',
-    price: 89.99,
-    listing_type: 'fixed_price',
-    image_paths: ['https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png'],
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
-  }
+// Your Cloudinary URLs
+const cloudinaryImages = [
+  'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg',
+  'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png'
 ];
 
-// Seed function
+// Automatically generate product data
+const sampleProducts = cloudinaryImages.map((url, index) => ({
+  title: `Sample Product ${index + 1}`,
+  description: `This is a sample description for product ${index + 1}.`,
+  price: (index + 1) * 50, // Example prices: 50, 100, ...
+  listing_type: 'fixed_price',
+  image_paths: [url],
+  seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+  status: 'approved'
+}));
+
 async function seed() {
   return new Promise((resolve, reject) => {
     db.get('SELECT COUNT(*) as count FROM listings', (err, row) => {
@@ -51,9 +46,9 @@ async function seed() {
           product.title,
           product.description,
           product.price || null,
-          null, // no auction for these
+          null, // starting_bid (fixed_price)
           product.listing_type,
-          null, // no auction end time
+          null, // auction_end_time
           JSON.stringify(product.image_paths),
           product.status,
           new Date().toISOString(),
@@ -77,8 +72,13 @@ async function seed() {
 }
 
 seed()
-  .then(() => db.close(() => console.log('✅ Database connection closed.')))
+  .then(() => {
+    db.close();
+    console.log('✅ Database connection closed.');
+    process.exit(0);
+  })
   .catch(err => {
     console.error('❌ Seeding failed:', err);
     db.close();
+    process.exit(1);
   });
