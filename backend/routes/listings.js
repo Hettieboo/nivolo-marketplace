@@ -5,28 +5,18 @@ const { body, validationResult } = require('express-validator');
 const router = express.Router();
 const listingService = require('../services/listingService');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
 const upload = multer({ 
   storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: function (req, file, cb) {
     const allowedTypes = /jpeg|jpg|png|gif/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    
     if (mimetype && extname) {
       return cb(null, true);
     } else {
@@ -39,14 +29,10 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const listings = await listingService.getApprovedListings();
-    res.status(200).json({
-      listings: listings
-    });
+    res.status(200).json({ listings });
   } catch (error) {
     console.error('Get listings error:', error);
-    res.status(500).json({
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -60,39 +46,42 @@ router.post('/', authenticateToken, upload.array('images', 3), [
   body('auction_end_time').optional().isISO8601()
 ], async (req, res) => {
   try {
-    // Check validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        details: errors.array()
-      });
+      return res.status(400).json({ error: 'Validation failed', details: errors.array() });
     }
-    
+
     const sellerId = req.user.userId;
     const listingData = req.body;
-    
-    // Handle uploaded images
+
+    // Handle uploaded images via Cloudinary
     if (req.files && req.files.length > 0) {
-      const imagePaths = req.files.map(file => `/uploads/${file.filename}`);
-      listingData.image_paths = JSON.stringify(imagePaths);
+      const uploadedUrls = [];
+      for (const file of req.files) {
+        const result = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: 'products' },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            }
+          );
+          streamifier.createReadStream(file.buffer).pipe(stream);
+        });
+        uploadedUrls.push(result.secure_url);
+      }
+      listingData.image_paths = JSON.stringify(uploadedUrls);
     } else {
-      // Use placeholder image if no images uploaded
+      // Placeholder if no image uploaded
       listingData.image_paths = JSON.stringify(['https://via.placeholder.com/400x300?text=No+Image']);
     }
-    
+
     const listing = await listingService.createListing(listingData, sellerId);
-    
-    res.status(201).json({
-      message: 'Listing created successfully',
-      listing: listing
-    });
-    
+    res.status(201).json({ message: 'Listing created successfully', listing });
+
   } catch (error) {
     console.error('Create listing error:', error);
-    res.status(400).json({
-      error: error.message
-    });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -100,14 +89,10 @@ router.post('/', authenticateToken, upload.array('images', 3), [
 router.get('/pending', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const listings = await listingService.getPendingListings();
-    res.status(200).json({
-      listings: listings
-    });
+    res.status(200).json({ listings });
   } catch (error) {
     console.error('Get pending listings error:', error);
-    res.status(500).json({
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -116,13 +101,10 @@ router.put('/:id/approve', authenticateToken, requireAdmin, async (req, res) => 
   try {
     const listingId = req.params.id;
     const result = await listingService.approveListing(listingId);
-    
     res.status(200).json(result);
   } catch (error) {
     console.error('Approve listing error:', error);
-    res.status(400).json({
-      error: error.message
-    });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -131,15 +113,10 @@ router.get('/user/my-listings', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const listings = await listingService.getUserListings(userId);
-    
-    res.status(200).json({
-      listings: listings
-    });
+    res.status(200).json({ listings });
   } catch (error) {
     console.error('Get user listings error:', error);
-    res.status(500).json({
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -148,15 +125,10 @@ router.get('/user/my-purchases', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const purchases = await listingService.getUserPurchases(userId);
-    
-    res.status(200).json({
-      purchases: purchases
-    });
+    res.status(200).json({ purchases });
   } catch (error) {
     console.error('Get user purchases error:', error);
-    res.status(500).json({
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -165,22 +137,12 @@ router.get('/:id', async (req, res) => {
   try {
     const listingId = req.params.id;
     const listing = await listingService.getListingById(listingId);
-    
-    res.status(200).json({
-      listing: listing
-    });
+    res.status(200).json({ listing });
   } catch (error) {
     console.error('Get listing error:', error);
-    res.status(404).json({
-      error: error.message
-    });
+    res.status(404).json({ error: error.message });
   }
 });
-
-// Routes will be implemented in later tasks
-// GET /api/listings/:id - task 6.1
-// POST /api/listings/:id/images - task 4.4
-// PUT /api/listings/:id/reject - task 5.1
 
 // DELETE /api/listings/:id - Delete listing (owner or admin only)
 router.delete('/:id', authenticateToken, async (req, res) => {
@@ -188,7 +150,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     const listingId = req.params.id;
     const userId = req.user.userId;
     const isAdmin = req.user.is_admin;
-    
     const result = await listingService.deleteListing(listingId, userId, isAdmin);
     res.status(200).json(result);
   } catch (error) {
