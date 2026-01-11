@@ -11,7 +11,7 @@ const db = new sqlite3.Database(dbPath);
 
 console.log('🌱 Starting database seeding...');
 
-// Sample products to seed
+// Sample products to seed - UPDATED WITH YOUR CORRECT USER ID
 const sampleProducts = [
   {
     title: 'Vintage Leather Watch',
@@ -19,7 +19,7 @@ const sampleProducts = [
     price: 149.99,
     listing_type: 'fixed_price',
     image_path: '/uploads/watch.jpg',
-    seller_id: 1,
+    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc', // YOUR ACTUAL USER ID
     status: 'approved'
   },
   {
@@ -28,7 +28,7 @@ const sampleProducts = [
     price: 89.99,
     listing_type: 'fixed_price',
     image_path: '/uploads/sunglasses.jpg',
-    seller_id: 1,
+    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
     status: 'approved'
   },
   {
@@ -37,7 +37,7 @@ const sampleProducts = [
     price: 199.99,
     listing_type: 'fixed_price',
     image_path: '/uploads/headphones.jpg',
-    seller_id: 1,
+    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
     status: 'approved'
   },
   {
@@ -46,7 +46,7 @@ const sampleProducts = [
     price: 249.99,
     listing_type: 'fixed_price',
     image_path: '/uploads/handbag.jpg',
-    seller_id: 1,
+    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
     status: 'approved'
   },
   {
@@ -55,7 +55,7 @@ const sampleProducts = [
     price: 79.99,
     listing_type: 'fixed_price',
     image_path: '/uploads/shoes.jpg',
-    seller_id: 1,
+    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
     status: 'approved'
   },
   {
@@ -65,7 +65,7 @@ const sampleProducts = [
     listing_type: 'auction',
     auction_end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     image_path: '/uploads/guitar.jpg',
-    seller_id: 1,
+    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
     status: 'approved'
   }
 ];
@@ -92,7 +92,6 @@ async function seed() {
       `);
 
       let inserted = 0;
-
       sampleProducts.forEach(product => {
         const imagePaths = JSON.stringify([product.image_path]);
         
