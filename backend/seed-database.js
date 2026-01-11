@@ -1,25 +1,23 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const fs = require('fs');
 
 // Database path
 const dbPath = path.join(__dirname, 'database.sqlite');
-const uploadsPath = path.join(__dirname, 'uploads');
 
 // Connect to database
 const db = new sqlite3.Database(dbPath);
 
 console.log('🌱 Starting database seeding...');
 
-// Sample products to seed - UPDATED WITH YOUR CORRECT USER ID
+// Sample products to seed with Cloudinary URLs
 const sampleProducts = [
   {
     title: 'Vintage Leather Watch',
-    description: 'Beautiful vintage leather watch in excellent condition. Classic design with modern functionality.',
+    description: 'Beautiful vintage leather watch in excellent condition.',
     price: 149.99,
     listing_type: 'fixed_price',
-    image_path: '/uploads/watch.jpg',
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc', // YOUR ACTUAL USER ID
+    image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg',
+    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
     status: 'approved'
   },
   {
@@ -27,44 +25,7 @@ const sampleProducts = [
     description: 'Premium designer sunglasses with UV protection. Stylish and durable.',
     price: 89.99,
     listing_type: 'fixed_price',
-    image_path: '/uploads/sunglasses.jpg',
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
-  },
-  {
-    title: 'Wireless Headphones',
-    description: 'High-quality wireless headphones with noise cancellation. Perfect sound quality.',
-    price: 199.99,
-    listing_type: 'fixed_price',
-    image_path: '/uploads/headphones.jpg',
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
-  },
-  {
-    title: 'Leather Handbag',
-    description: 'Elegant leather handbag with multiple compartments. Perfect for everyday use.',
-    price: 249.99,
-    listing_type: 'fixed_price',
-    image_path: '/uploads/handbag.jpg',
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
-  },
-  {
-    title: 'Running Shoes',
-    description: 'Comfortable running shoes with excellent support. Barely used, like new condition.',
-    price: 79.99,
-    listing_type: 'fixed_price',
-    image_path: '/uploads/shoes.jpg',
-    seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-    status: 'approved'
-  },
-  {
-    title: 'Acoustic Guitar',
-    description: 'Beautiful acoustic guitar with rich sound. Perfect for beginners and professionals.',
-    starting_bid: 299.99,
-    listing_type: 'auction',
-    auction_end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    image_path: '/uploads/guitar.jpg',
+    image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png',
     seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
     status: 'approved'
   }
@@ -86,7 +47,7 @@ async function seed() {
 
       const stmt = db.prepare(`
         INSERT INTO listings (
-          user_id, title, description, price, starting_bid, 
+          user_id, title, description, price, starting_bid,
           listing_type, auction_end_time, image_paths, status, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
@@ -94,7 +55,7 @@ async function seed() {
       let inserted = 0;
       sampleProducts.forEach(product => {
         const imagePaths = JSON.stringify([product.image_path]);
-        
+
         stmt.run(
           product.seller_id,
           product.title,
