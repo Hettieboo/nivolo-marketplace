@@ -1,48 +1,60 @@
-const express = require('express');
-const router = express.Router();
-const biddingService = require('../services/biddingService');
-const { authenticateToken } = require('../middleware/auth');
+const { db } = require('../config/database');
 
-// POST /api/bids - Place a bid
-router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const { auctionId, bidAmount } = req.body;
-    const bidderId = req.user.userId;
-    
-    if (!auctionId || !bidAmount) {
-      return res.status(400).json({ error: 'Auction ID and bid amount are required' });
-    }
-    
-    const result = await biddingService.placeBid(auctionId, bidAmount, bidderId);
-    res.status(201).json(result);
-  } catch (error) {
-    console.error('Place bid error:', error);
-    res.status(400).json({ error: error.message });
+// Place a bid
+async function placeBid(auctionId, bidAmount, bidderId) {
+  // Optional: check if auction exists
+  const auctionCheck = await db.query('SELECT id, starting_bid FROM listings WHERE id = $1', [auctionId]);
+  if (auctionCheck.rows.length === 0) {
+    throw new Error('Auction not found');
   }
-});
 
-// GET /api/bids/:auctionId - Get bids for an auction
-router.get('/:auctionId', async (req, res) => {
-  try {
-    const auctionId = req.params.auctionId;
-    const bids = await biddingService.getAuctionBids(auctionId);
-    res.status(200).json({ bids });
-  } catch (error) {
-    console.error('Get bids error:', error);
-    res.status(500).json({ error: error.message });
+  // Optional: check bid amount against highest bid
+  const highestBidRes = await db.query(
+    'SELECT MAX(amount) AS highest_bid FROM bids WHERE auction_id = $1',
+    [auctionId]
+  );
+  const highestBid = highestBidRes.rows[0].highest_bid || auctionCheck.rows[0].starting_bid;
+  if (bidAmount <= highestBid) {
+    throw new Error(`Bid must be higher than current highest bid (${highestBid})`);
   }
-});
 
-// GET /api/bids/user/my-bids - Get current user's bids
-router.get('/user/my-bids', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const bids = await biddingService.getUserBids(userId);
-    res.status(200).json({ bids });
-  } catch (error) {
-    console.error('Get user bids error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+  // Insert bid
+  const result = await db.query(
+    `INSERT INTO bids (auction_id, bidder_id, amount, created_at)
+     VALUES ($1, $2, $3, NOW())
+     RETURNING *`,
+    [auctionId, bidderId, bidAmount]
+  );
 
-module.exports = router;
+  return result.rows[0];
+}
+
+// Get all bids for an auction
+async function getAuctionBids(auctionId) {
+  const result = await db.query(
+    `SELECT b.*, u.email AS bidder_email
+     FROM bids b
+     JOIN users u ON b.bidder_id = u.id
+     WHERE b.auction_id = $1
+     ORDER BY b.amount DESC, b.created_at ASC`,
+    [auctionId]
+  );
+
+  return result.rows;
+}
+
+// Get all bids by a user
+async function getUserBids(userId) {
+  const result = await db.query(
+    `SELECT b.*, l.title AS auction_title
+     FROM bids b
+     JOIN listings l ON b.auction_id = l.id
+     WHERE b.bidder_id = $1
+     ORDER BY b.created_at DESC`,
+    [userId]
+  );
+
+  return result.rows;
+}
+
+module.exports = { placeBid, getAuctionBids, getUserBids };
