@@ -1,86 +1,58 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const router = express.Router();
-const authService = require('../services/authService');
+const { db } = require('../config/database');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-// POST /api/auth/register
-router.post('/register', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }),
-  body('role').optional().isIn(['buyer', 'seller', 'admin'])
-], async (req, res) => {
-  try {
-    // Check validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
-    
-    const { email, password, role } = req.body;
-    
-    const result = await authService.register({ email, password, role });
-    
-    res.status(201).json({
-      message: 'User registered successfully',
-      user: result.user,
-      token: result.token
-    });
-    
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(400).json({
-      error: error.message
-    });
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+
+// Register a new user
+async function register({ email, password, role = 'buyer' }) {
+  // Check if user already exists
+  const existing = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+  if (existing.rows.length > 0) {
+    throw new Error('Email already registered');
   }
-});
 
-// POST /api/auth/login
-router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').notEmpty()
-], async (req, res) => {
-  try {
-    // Check validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
-    
-    const { email, password } = req.body;
-    
-    const result = await authService.login({ email, password });
-    
-    res.status(200).json({
-      message: 'Login successful',
-      user: result.user,
-      token: result.token
-    });
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(401).json({
-      error: error.message
-    });
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Insert user into PostgreSQL
+  const result = await db.query(
+    `INSERT INTO users (email, password, role, created_at)
+     VALUES ($1, $2, $3, NOW())
+     RETURNING id, email, role, is_admin, created_at`,
+    [email, hashedPassword, role]
+  );
+
+  const user = result.rows[0];
+
+  // Generate JWT token
+  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+
+  return { user, token };
+}
+
+// Login
+async function login({ email, password }) {
+  const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+  if (result.rows.length === 0) {
+    throw new Error('Invalid credentials');
   }
-});
 
-// POST /api/auth/logout
-router.post('/logout', (req, res) => {
-  // Since we're using JWT tokens stored in localStorage,
-  // logout is handled on the frontend by removing the token
-  res.status(200).json({
-    message: 'Logout successful'
-  });
-});
+  const user = result.rows[0];
 
-// Routes will be implemented in later tasks
-// POST /api/auth/reset-password-request - task 3.1
-// POST /api/auth/reset-password - task 3.2
+  // Compare password
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) {
+    throw new Error('Invalid credentials');
+  }
 
-module.exports = router;
+  // Generate JWT token
+  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+
+  // Remove password before returning
+  delete user.password;
+
+  return { user, token };
+}
+
+module.exports = { register, login };
