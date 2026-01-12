@@ -21,7 +21,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const authRoutes = require('./routes/auth');           // auth routes
 const listingRoutes = require('./routes/listings');    // listing routes
 const adminRoutes = require('./routes/admin');         // admin routes
-const paymentRoutes = require('./routes/payment');     // real payment endpoints
+const paymentRoutes = require('./routes/payment');     // real payment endpoints.
 const paymentsRoutes = require('./routes/payments');   // placeholder/future endpoints
 const bidRoutes = require('./routes/bids');            // bidding routes
 
