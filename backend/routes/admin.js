@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const { db } = require('../config/database');
+const { db } = require('../backend/config/database');
 
 // GET /api/admin/dashboard - Get dashboard statistics
 router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
