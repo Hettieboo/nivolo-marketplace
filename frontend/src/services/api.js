@@ -61,7 +61,6 @@ export const authAPI = {
 };
 
 export const listingAPI = {
-  // Will be implemented in task 10.2 and 10.3
   getListings: async () => {
     const response = await api.get('/listings');
     return response.data;
@@ -79,7 +78,6 @@ export const listingAPI = {
 };
 
 export const biddingAPI = {
-  // Will be implemented in task 10.4
   placeBid: async (auctionId, bidAmount) => {
     const response = await api.post('/bids', { auctionId, bidAmount });
     return response.data;
@@ -92,7 +90,6 @@ export const biddingAPI = {
 };
 
 export const adminAPI = {
-  // Will be implemented in task 10.5
   getDashboardStats: async () => {
     const response = await api.get('/admin/dashboard');
     return response.data;
