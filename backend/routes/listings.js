@@ -3,29 +3,64 @@ const router = express.Router();
 const { db } = require('../config/database');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const multer = require('multer');
-const path = require('path');
+const cloudinary = require('cloudinary').v2;
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const upload = multer({ storage: storage });
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
-// POST /api/listings - Create a new listing
+const uploadToCloudinary = (fileBuffer, originalname) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'nivolo-listings',
+        resource_type: 'auto',
+        public_id: `listing-${Date.now()}-${originalname.split('.')[0]}`
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    );
+    uploadStream.end(fileBuffer);
+  });
+};
+
 router.post('/', authenticateToken, upload.array('images', 5), async (req, res) => {
   try {
+    console.log('📝 Creating listing...');
+    console.log('User ID:', req.user.userId);
+    console.log('Body:', req.body);
+    console.log('Files count:', req.files ? req.files.length : 0);
+    
     const sellerId = req.user.userId;
     const { title, description, listing_type, price, starting_bid, auction_end_time } = req.body;
     
-    // Get uploaded image paths
-    const image_paths = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    if (!title || !description || !listing_type) {
+      console.error('❌ Missing required fields');
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        required: ['title', 'description', 'listing_type']
+      });
+    }
+    
+    let image_paths = [];
+    if (req.files && req.files.length > 0) {
+      console.log('📤 Uploading images to Cloudinary...');
+      const uploadPromises = req.files.map(file => 
+        uploadToCloudinary(file.buffer, file.originalname)
+      );
+      image_paths = await Promise.all(uploadPromises);
+      console.log('✅ Images uploaded:', image_paths.length);
+    }
     
     const result = await db.query(
       `INSERT INTO listings 
@@ -44,14 +79,19 @@ router.post('/', authenticateToken, upload.array('images', 5), async (req, res) 
       ]
     );
     
+    console.log('✅ Listing created:', result.rows[0].id);
     res.status(201).json({ listing: result.rows[0] });
   } catch (error) {
-    console.error('Create listing error:', error);
-    res.status(500).json({ error: 'Failed to create listing' });
+    console.error('❌ Create listing error:', error);
+    console.error('Error details:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to create listing',
+      details: error.message 
+    });
   }
 });
 
-// GET /api/listings - Get approved listings
 router.get('/', async (req, res) => {
   try {
     const result = await db.query(
@@ -76,7 +116,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/listings/pending - Get pending listings (admin only)
 router.get('/pending', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const result = await db.query(
@@ -99,7 +138,6 @@ router.get('/pending', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// GET /api/listings/my-listings - Get user's own listings
 router.get('/my-listings', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -123,7 +161,6 @@ router.get('/my-listings', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/listings/my-purchases - Get user's purchases
 router.get('/my-purchases', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -149,7 +186,6 @@ router.get('/my-purchases', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/listings/:id - Get single listing by ID
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -178,7 +214,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PUT /api/listings/:id/approve - Approve a listing (admin)
 router.put('/:id/approve', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -202,7 +237,6 @@ router.put('/:id/approve', authenticateToken, requireAdmin, async (req, res) => 
   }
 });
 
-// DELETE /api/listings/:id - Delete a listing (owner or admin)
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
