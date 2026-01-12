@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../config/database');
-
+const { db } = require('../backend/config/database');
 class ListingService {
   async createListing(listingData, sellerId) {
     const { title, description, listing_type, price, starting_bid, auction_end_time } = listingData;
