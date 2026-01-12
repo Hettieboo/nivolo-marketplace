@@ -1,6 +1,14 @@
 const { Pool } = require('pg');
 
-// Use Railway's DATABASE_URL or fallback to local PostgreSQL
+// 🔹 Debug log to verify which DATABASE_URL is being used
+console.log('DEBUG: DATABASE_URL in container =', process.env.DATABASE_URL);
+
+// Throw an error if DATABASE_URL is missing
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required!');
+}
+
+// Use Railway's DATABASE_URL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -116,6 +124,7 @@ const initializeDatabase = async () => {
     console.log('Database tables initialized successfully');
   } catch (err) {
     await client.query('ROLLBACK');
+    console.error('Database initialization failed:', err);
     throw err;
   } finally {
     client.release();
