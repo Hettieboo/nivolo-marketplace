@@ -2,8 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
-
-const { initializeDatabase } = require('./config/database');
+const { initializeDatabase } = require('./backend/config/database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +17,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
