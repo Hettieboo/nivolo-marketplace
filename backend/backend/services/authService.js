@@ -28,56 +28,44 @@ class AuthService {
     
     // Create user
     const userId = uuidv4();
-    const is_admin = role === 'admin' ? 1 : 0;
+    const is_admin = role === 'admin';
     
-    return new Promise((resolve, reject) => {
-      const query = `
-        INSERT INTO users (id, email, password_hash, role, is_admin, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-      `;
-      
-      db.run(query, [userId, email, password_hash, role, is_admin], function(err) {
-        if (err) {
-          reject(new Error('Failed to create user: ' + err.message));
-          return;
-        }
-        
-        // Generate JWT token
-        const token = jwt.sign(
-          { 
-            userId: userId, 
-            email: email, 
-            role: role,
-            is_admin: is_admin 
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: '7d' }
-        );
-        
-        resolve({
-          user: {
-            id: userId,
-            email: email,
-            role: role,
-            is_admin: Boolean(is_admin)
-          },
-          token: token
-        });
-      });
-    });
+    const query = `
+      INSERT INTO users (id, email, password_hash, role, is_admin, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      RETURNING id, email, role, is_admin
+    `;
+    
+    const result = await db.query(query, [userId, email, password_hash, role, is_admin]);
+    const user = result.rows[0];
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role,
+        is_admin: user.is_admin 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        is_admin: Boolean(user.is_admin)
+      },
+      token: token
+    };
   }
   
-  findUserByEmail(email) {
-    return new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM users WHERE email = ?';
-      db.get(query, [email], (err, row) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(row);
-      });
-    });
+  async findUserByEmail(email) {
+    const query = 'SELECT * FROM users WHERE email = $1';
+    const result = await db.query(query, [email]);
+    return result.rows[0]; // Returns undefined if not found
   }
 
   async login(credentials) {
