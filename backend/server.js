@@ -24,6 +24,7 @@ const adminRoutes = require('./routes/admin');         // admin routes
 const paymentRoutes = require('./routes/payment');     // real payment endpoints.
 const paymentsRoutes = require('./routes/payments');   // placeholder/future endpoints
 const bidRoutes = require('./routes/bids');            // bidding routes
+const seedRoutes = require('./scripts/seedData');      // seed route
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -32,6 +33,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/bids', bidRoutes);
+app.use('/api', seedRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
