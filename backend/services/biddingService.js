@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../backend/config/database');
+const { db } = require('../config/database');
 
 class BiddingService {
   async placeBid(auctionId, bidAmount, bidderId) {
