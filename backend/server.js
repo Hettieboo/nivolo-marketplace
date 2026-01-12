@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const { initializeDatabase } = require('./config/database');
@@ -64,21 +65,23 @@ app.get('/api/seed-demo', async (req, res) => {
     
     const sampleProducts = [
       {
+        id: uuidv4(),
         title: 'Sample Product 1',
         description: 'This is a sample description for product 1.',
         price: 50,
         listing_type: 'fixed_price',
         image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg',
-        user_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
         status: 'approved'
       },
       {
+        id: uuidv4(),
         title: 'Sample Product 2',
         description: 'This is a sample description for product 2.',
         price: 100,
         listing_type: 'fixed_price',
         image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png',
-        user_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
         status: 'approved'
       }
     ];
@@ -96,9 +99,9 @@ app.get('/api/seed-demo', async (req, res) => {
 
       const stmt = db.prepare(`
         INSERT INTO listings (
-          user_id, title, description, price, starting_bid, 
+          id, seller_id, title, description, price, starting_bid, 
           listing_type, auction_end_time, image_paths, status, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       let inserted = 0;
@@ -108,7 +111,8 @@ app.get('/api/seed-demo', async (req, res) => {
         const imagePaths = JSON.stringify([product.image_path]);
         
         stmt.run(
-          product.user_id,
+          product.id,
+          product.seller_id,
           product.title,
           product.description,
           product.price || null,
