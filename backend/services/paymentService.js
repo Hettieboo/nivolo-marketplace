@@ -1,6 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../config/database');
+const { db } = require('../backend/config/database');
 
 class PaymentService {
   async createPaymentIntent(listingId, buyerId, billingInfo) {
