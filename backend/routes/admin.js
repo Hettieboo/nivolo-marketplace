@@ -61,141 +61,112 @@ router.put('/listings/:id/reject', authenticateToken, requireAdmin, async (req, 
 
 // Helper functions
 async function getDashboardStats() {
-  return new Promise((resolve, reject) => {
-    const queries = [
-      'SELECT COUNT(*) as total_users FROM users',
-      'SELECT COUNT(*) as total_listings FROM listings',
-      'SELECT COUNT(*) as pending_listings FROM listings WHERE status = "pending"',
-      'SELECT COUNT(*) as approved_listings FROM listings WHERE status = "approved"',
-      'SELECT COUNT(*) as rejected_listings FROM listings WHERE status = "rejected"',
-      'SELECT COUNT(*) as total_orders FROM orders',
-      'SELECT COALESCE(SUM(amount), 0) as total_revenue FROM orders WHERE status = "paid"'
-    ];
-
-    let completed = 0;
-    const stats = {};
-
-    queries.forEach((query, index) => {
-      db.get(query, [], (err, row) => {
-        if (err) {
-          reject(new Error('Failed to fetch dashboard stats: ' + err.message));
-          return;
-        }
-
-        const key = Object.keys(row)[0];
-        stats[key] = row[key];
-        completed++;
-
-        if (completed === queries.length) {
-          resolve(stats);
-        }
-      });
-    });
-  });
+  const stats = {};
+  
+  // Run all queries in parallel
+  const [
+    totalUsers,
+    totalListings,
+    pendingListings,
+    approvedListings,
+    rejectedListings,
+    totalOrders,
+    totalRevenue
+  ] = await Promise.all([
+    db.query('SELECT COUNT(*) as total_users FROM users'),
+    db.query('SELECT COUNT(*) as total_listings FROM listings'),
+    db.query('SELECT COUNT(*) as pending_listings FROM listings WHERE status = $1', ['pending']),
+    db.query('SELECT COUNT(*) as approved_listings FROM listings WHERE status = $1', ['approved']),
+    db.query('SELECT COUNT(*) as rejected_listings FROM listings WHERE status = $1', ['rejected']),
+    db.query('SELECT COUNT(*) as total_orders FROM orders'),
+    db.query('SELECT COALESCE(SUM(amount), 0) as total_revenue FROM orders WHERE status = $1', ['paid'])
+  ]);
+  
+  stats.total_users = parseInt(totalUsers.rows[0].total_users);
+  stats.total_listings = parseInt(totalListings.rows[0].total_listings);
+  stats.pending_listings = parseInt(pendingListings.rows[0].pending_listings);
+  stats.approved_listings = parseInt(approvedListings.rows[0].approved_listings);
+  stats.rejected_listings = parseInt(rejectedListings.rows[0].rejected_listings);
+  stats.total_orders = parseInt(totalOrders.rows[0].total_orders);
+  stats.total_revenue = parseFloat(totalRevenue.rows[0].total_revenue);
+  
+  return stats;
 }
 
 async function getAllUsers() {
-  return new Promise((resolve, reject) => {
-    const query = `
-      SELECT id, email, role, is_admin, created_at, updated_at
-      FROM users 
-      ORDER BY created_at DESC
-    `;
-    
-    db.all(query, [], (err, rows) => {
-      if (err) {
-        reject(new Error('Failed to fetch users: ' + err.message));
-        return;
-      }
-      
-      const users = rows.map(row => ({
-        ...row,
-        is_admin: Boolean(row.is_admin)
-      }));
-      
-      resolve(users);
-    });
-  });
+  const query = `
+    SELECT id, email, role, is_admin, created_at, updated_at
+    FROM users 
+    ORDER BY created_at DESC
+  `;
+  
+  const result = await db.query(query);
+  
+  const users = result.rows.map(row => ({
+    ...row,
+    is_admin: Boolean(row.is_admin)
+  }));
+  
+  return users;
 }
 
 async function getAllListings() {
-  return new Promise((resolve, reject) => {
-    const query = `
-      SELECT l.*, u.email as seller_email 
-      FROM listings l 
-      JOIN users u ON l.seller_id = u.id 
-      ORDER BY l.created_at DESC
-    `;
-    
-    db.all(query, [], (err, rows) => {
-      if (err) {
-        reject(new Error('Failed to fetch listings: ' + err.message));
-        return;
-      }
-      
-      const listings = rows.map(row => ({
-        ...row,
-        image_paths: JSON.parse(row.image_paths || '[]'),
-        price: row.price ? parseFloat(row.price) : null,
-        starting_bid: row.starting_bid ? parseFloat(row.starting_bid) : null
-      }));
-      
-      resolve(listings);
-    });
-  });
+  const query = `
+    SELECT l.*, u.email as seller_email 
+    FROM listings l 
+    JOIN users u ON l.seller_id = u.id 
+    ORDER BY l.created_at DESC
+  `;
+  
+  const result = await db.query(query);
+  
+  const listings = result.rows.map(row => ({
+    ...row,
+    image_paths: JSON.parse(row.image_paths || '[]'),
+    price: row.price ? parseFloat(row.price) : null,
+    starting_bid: row.starting_bid ? parseFloat(row.starting_bid) : null
+  }));
+  
+  return listings;
 }
 
 async function getAllPayments() {
-  return new Promise((resolve, reject) => {
-    const query = `
-      SELECT o.*, l.title as listing_title, 
-             buyer.email as buyer_email, 
-             seller.email as seller_email
-      FROM orders o
-      JOIN listings l ON o.listing_id = l.id
-      JOIN users buyer ON o.buyer_id = buyer.id
-      JOIN users seller ON l.seller_id = seller.id
-      ORDER BY o.created_at DESC
-    `;
-    
-    db.all(query, [], (err, rows) => {
-      if (err) {
-        reject(new Error('Failed to fetch payments: ' + err.message));
-        return;
-      }
-      
-      const payments = rows.map(row => ({
-        ...row,
-        amount: row.amount ? parseFloat(row.amount) : null
-      }));
-      
-      resolve(payments);
-    });
-  });
+  const query = `
+    SELECT o.*, l.title as listing_title, 
+           buyer.email as buyer_email, 
+           seller.email as seller_email
+    FROM orders o
+    JOIN listings l ON o.listing_id = l.id
+    JOIN users buyer ON o.buyer_id = buyer.id
+    JOIN users seller ON l.seller_id = seller.id
+    ORDER BY o.created_at DESC
+  `;
+  
+  const result = await db.query(query);
+  
+  const payments = result.rows.map(row => ({
+    ...row,
+    amount: row.amount ? parseFloat(row.amount) : null
+  }));
+  
+  return payments;
 }
 
 async function rejectListing(listingId) {
-  return new Promise((resolve, reject) => {
-    const query = `
-      UPDATE listings 
-      SET status = 'rejected', updated_at = datetime('now') 
-      WHERE id = ?
-    `;
-    
-    db.run(query, [listingId], function(err) {
-      if (err) {
-        reject(new Error('Failed to reject listing: ' + err.message));
-        return;
-      }
-      
-      if (this.changes === 0) {
-        reject(new Error('Listing not found'));
-        return;
-      }
-      
-      resolve({ message: 'Listing rejected successfully' });
-    });
-  });
+  const query = `
+    UPDATE listings 
+    SET status = 'rejected', updated_at = CURRENT_TIMESTAMP 
+    WHERE id = $1
+    RETURNING id
+  `;
+  
+  const result = await db.query(query, [listingId]);
+  
+  if (result.rows.length === 0) {
+    throw new Error('Listing not found');
+  }
+  
+  return { message: 'Listing rejected successfully' };
 }
 
 module.exports = router;
