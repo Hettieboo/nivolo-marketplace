@@ -41,7 +41,7 @@ const startServer = async () => {
   try {
     await initializeDatabase();
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT} - PostgreSQL`);
     });
   } catch (error) {
     console.error('Failed to initialize database:', error);
