@@ -1,0 +1,70 @@
+const fs = require('fs');
+const path = require('path');
+const { db } = require('./config/database');
+
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+const seedImages = async () => {
+  try {
+    console.log('Starting seed process...');
+    
+    // Create a system seed user if it doesn't exist
+    const seedUserId = 'system_seed_user';
+    console.log('Creating/checking system seed user...');
+    
+    await db.query(
+      `INSERT INTO users (id, email, password_hash, role) 
+       VALUES ($1, $2, $3, $4) 
+       ON CONFLICT (email) DO NOTHING`,
+      [seedUserId, 'system@seed.local', 'no_login', 'seller']
+    );
+    console.log('System user ready.');
+
+    // Read files from uploads directory
+    const files = fs.readdirSync(UPLOADS_DIR).filter(f =>
+      /\.(jpg|jpeg|png|gif)$/i.test(f)
+    );
+    
+    console.log(`Found ${files.length} files in uploads folder.`);
+    let addedCount = 0;
+
+    for (const file of files) {
+      const name = file.replace(/\.[^/.]+$/, '');
+      const imagePath = `uploads/${file}`;
+
+      // Check if this image already exists
+      const result = await db.query(
+        'SELECT * FROM listings WHERE image_paths = $1',
+        [imagePath]
+      );
+
+      if (result.rows.length === 0) {
+        const id = `listing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        await db.query(
+          `INSERT INTO listings (id, seller_id, title, description, listing_type, image_paths, status, price) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [id, seedUserId, name, `Seeded item: ${name}`, 'fixed_price', imagePath, 'approved', 0]
+        );
+        
+        console.log(`Added: ${name} → ${imagePath}`);
+        addedCount++;
+      } else {
+        console.log(`Skipped (already exists): ${name}`);
+      }
+    }
+
+    console.log(`Seeding complete. ${addedCount} new listings added.`);
+    process.exit(0);
+  } catch (err) {
+    console.error('Error seeding uploads:', err);
+    console.error('Error stack:', err.stack);
+    process.exit(1);
+  }
+};
+
+if (require.main === module) {
+  seedImages();
+}
+
+module.exports = seedImages;
