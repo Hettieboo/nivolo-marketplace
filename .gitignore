@@ -12,7 +12,9 @@ yarn-error.log*
 .env.production.local
 
 # Database
+database.sqlite
 backend/database.sqlite
+backend/backend/database.sqlite
 backend/database.sqlite-journal
 
 # Uploads
