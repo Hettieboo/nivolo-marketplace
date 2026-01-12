@@ -1,4 +1,4 @@
-# Nivolo Refind
+# Nivolo Refind.
 
 **Sell Fast. Buy Smart. Find More. Pay Less.**
 
