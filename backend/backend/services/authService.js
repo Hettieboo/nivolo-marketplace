@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../config/database');
+const { db } = require('../backend/config/database');
 
 class AuthService {
   async register(userData) {
