@@ -1,16 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { db } = require('../config/database');
 
 // Temporary seed endpoint - REMOVE AFTER USE
 router.post('/seed', async (req, res) => {
   try {
     console.log('🌱 Starting database seeding...');
-
-    // Database path
-    const dbPath = path.join(__dirname, '..', 'database.sqlite');
-    const db = new sqlite3.Database(dbPath);
 
     // Your Cloudinary URLs
     const cloudinaryImages = [
@@ -30,35 +25,30 @@ router.post('/seed', async (req, res) => {
     }));
 
     // Check if already seeded
-    db.get('SELECT COUNT(*) as count FROM listings', (err, row) => {
-      if (err) {
-        console.error('❌ Error checking database:', err);
-        db.close();
-        return res.status(500).json({ error: err.message });
-      }
+    const countResult = await db.query('SELECT COUNT(*) as count FROM listings');
+    const count = parseInt(countResult.rows[0].count);
 
-      if (row.count > 0) {
-        console.log(`✅ Database already has ${row.count} listings. Skipping seed.`);
-        db.close();
-        return res.json({ 
-          message: 'Database already seeded', 
-          count: row.count 
-        });
-      }
+    if (count > 0) {
+      console.log(`✅ Database already has ${count} listings. Skipping seed.`);
+      return res.json({ 
+        message: 'Database already seeded', 
+        count: count 
+      });
+    }
 
-      // Insert products
-      const stmt = db.prepare(`
-        INSERT INTO listings (
-          user_id, title, description, price, starting_bid,
-          listing_type, auction_end_time, image_paths, status, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
+    // Insert products
+    let inserted = 0;
+    const errors = [];
 
-      let inserted = 0;
-      const errors = [];
-
-      sampleProducts.forEach(product => {
-        stmt.run(
+    for (const product of sampleProducts) {
+      try {
+        await db.query(`
+          INSERT INTO listings (
+            id, seller_id, title, description, price, starting_bid,
+            listing_type, auction_end_time, image_paths, status, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `, [
+          require('uuid').v4(), // Generate ID
           product.seller_id,
           product.title,
           product.description,
@@ -68,31 +58,24 @@ router.post('/seed', async (req, res) => {
           null,
           JSON.stringify(product.image_paths),
           product.status,
-          new Date().toISOString(),
-          (err) => {
-            if (err) {
-              console.error(`❌ Error inserting ${product.title}:`, err);
-              errors.push({ product: product.title, error: err.message });
-            } else {
-              inserted++;
-              console.log(`✅ Created listing: ${product.title}`);
-            }
+          new Date().toISOString()
+        ]);
 
-            if (inserted + errors.length === sampleProducts.length) {
-              stmt.finalize();
-              console.log(`\n🎉 Seeding complete! Added ${inserted} products.`);
-              db.close();
-              
-              res.json({
-                success: true,
-                message: 'Database seeded successfully',
-                inserted: inserted,
-                errors: errors.length > 0 ? errors : undefined
-              });
-            }
-          }
-        );
-      });
+        inserted++;
+        console.log(`✅ Created listing: ${product.title}`);
+      } catch (err) {
+        console.error(`❌ Error inserting ${product.title}:`, err);
+        errors.push({ product: product.title, error: err.message });
+      }
+    }
+
+    console.log(`\n🎉 Seeding complete! Added ${inserted} products.`);
+
+    res.json({
+      success: true,
+      message: 'Database seeded successfully',
+      inserted: inserted,
+      errors: errors.length > 0 ? errors : undefined
     });
 
   } catch (error) {
