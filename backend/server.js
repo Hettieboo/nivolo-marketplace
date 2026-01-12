@@ -1,4 +1,3 @@
-```javascript
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -38,6 +37,25 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'Nivolo Refind API is running' });
 });
 
+app.get('/api/reset-db', async (req, res) => {
+  try {
+    const sqlite3 = require('sqlite3').verbose();
+    const dbPath = path.join(__dirname, 'database.sqlite');
+    const db = new sqlite3.Database(dbPath);
+    
+    db.run('DELETE FROM listings', (err) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({ error: err.message });
+      }
+      db.close();
+      res.json({ message: 'All listings deleted. You can now re-seed.' });
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/api/seed-demo', async (req, res) => {
   try {
     const sqlite3 = require('sqlite3').verbose();
@@ -51,7 +69,7 @@ app.get('/api/seed-demo', async (req, res) => {
         price: 50,
         listing_type: 'fixed_price',
         image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg',
-        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        user_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
         status: 'approved'
       },
       {
@@ -60,7 +78,7 @@ app.get('/api/seed-demo', async (req, res) => {
         price: 100,
         listing_type: 'fixed_price',
         image_path: 'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png',
-        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        user_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
         status: 'approved'
       }
     ];
@@ -90,7 +108,7 @@ app.get('/api/seed-demo', async (req, res) => {
         const imagePaths = JSON.stringify([product.image_path]);
         
         stmt.run(
-          product.seller_id,
+          product.user_id,
           product.title,
           product.description,
           product.price || null,
@@ -146,4 +164,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-```
