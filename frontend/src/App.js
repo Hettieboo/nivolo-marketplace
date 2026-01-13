@@ -376,7 +376,6 @@ function App() {
             {/* Auth Buttons */}
             <AuthButtons />
           </div>
-        </header>
 
         <main>
           <Routes>
