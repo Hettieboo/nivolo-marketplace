@@ -1,3 +1,39 @@
+const express = require('express');
+const router = express.Router();
+const { db } = require('../config/database');
+
+router.post('/create-user', async (req, res) => {
+  try {
+    const userId = 'b694dd70-620b-4c25-a4a6-b32874270dfc';
+    const email = 'seller@nivolo.com';
+    const password_hash = '$2b$10$abcdefghijklmnopqrstuvwxyz1234567890';
+    
+    const checkUser = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
+    
+    if (checkUser.rows.length > 0) {
+      return res.json({ message: 'User already exists', userId });
+    }
+    
+    await db.query(
+      'INSERT INTO users (id, email, password_hash, role, is_admin) VALUES ($1, $2, $3, $4, $5)',
+      [userId, email, password_hash, 'seller', false]
+    );
+    
+    res.json({ message: 'Test user created successfully', userId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/clear-listings', async (req, res) => {
+  try {
+    const result = await db.query('DELETE FROM listings');
+    res.json({ message: 'All listings deleted', count: result.rowCount });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/seed', async (req, res) => {
   try {
     console.log('🌱 Starting database seeding...');
@@ -86,3 +122,5 @@ router.post('/seed', async (req, res) => {
     res.status(500).json({ error: error.message, stack: error.stack });
   }
 });
+
+module.exports = router;
