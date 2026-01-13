@@ -7,7 +7,7 @@ const Marketplace = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all'); // 'all', 'buy-now', 'auction'
+  const [filter, setFilter] = useState('all'); // 'all', 'fixed_price', 'auction'
 
   useEffect(() => {
     fetchListings();
@@ -18,6 +18,7 @@ const Marketplace = () => {
       setLoading(true);
       setError(null);
       const response = await listingAPI.getListings();
+      console.log('API Response:', response); // Debug log
       setListings(response.listings || []);
     } catch (err) {
       console.error('Failed to fetch listings:', err);
@@ -85,8 +86,8 @@ const Marketplace = () => {
           All Items ({listings.length})
         </button>
         <button 
-          className={filter === 'buy-now' ? 'filter-btn active' : 'filter-btn'}
-          onClick={() => setFilter('buy-now')}
+          className={filter === 'fixed_price' ? 'filter-btn active' : 'filter-btn'}
+          onClick={() => setFilter('fixed_price')}
         >
           Buy Now
         </button>
@@ -100,7 +101,7 @@ const Marketplace = () => {
 
       {filteredListings.length === 0 ? (
         <div className="no-listings">
-          <p>No listings found</p>
+          <p>No listings found. Found {listings.length} total listings.</p>
         </div>
       ) : (
         <div className="listings-grid">
@@ -116,7 +117,7 @@ const Marketplace = () => {
                 <h3>{listing.title}</h3>
                 <p className="listing-description">{listing.description}</p>
                 <div className="listing-footer">
-                  {listing.listing_type === 'buy-now' ? (
+                  {listing.listing_type === 'fixed_price' ? (
                     <span className="price">{formatPrice(listing.price)}</span>
                   ) : (
                     <span className="price">Starting bid: {formatPrice(listing.starting_bid)}</span>
