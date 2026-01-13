@@ -91,6 +91,54 @@ router.put('/listings/:id/reject', authenticateToken, requireAdmin, async (req, 
   }
 });
 
+// Debug endpoint - see raw database data including recent orders
+router.get('/debug-db', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    // Get counts
+    const users = await db.query('SELECT COUNT(*) as count FROM users');
+    const listings = await db.query('SELECT COUNT(*) as count FROM listings');
+    const orders = await db.query('SELECT COUNT(*) as count FROM orders');
+    
+    // Get recent rows (limit 10)
+    const allListings = await db.query(`
+      SELECT id, title, status, seller_id, created_at 
+      FROM listings 
+      ORDER BY created_at DESC 
+      LIMIT 10
+    `);
+    const allUsers = await db.query(`
+      SELECT id, email, role 
+      FROM users 
+      ORDER BY created_at DESC 
+      LIMIT 10
+    `);
+    const allOrders = await db.query(`
+      SELECT o.id, o.listing_id, o.buyer_id, o.amount, o.status, o.created_at,
+             l.title as listing_title, u.email as buyer_email
+      FROM orders o
+      JOIN listings l ON o.listing_id = l.id
+      JOIN users u ON o.buyer_id = u.id
+      ORDER BY o.created_at DESC
+      LIMIT 10
+    `);
+    
+    // Send response
+    res.json({
+      counts: {
+        users: parseInt(users.rows[0].count),
+        listings: parseInt(listings.rows[0].count),
+        orders: parseInt(orders.rows[0].count)
+      },
+      recent_listings: allListings.rows,
+      recent_users: allUsers.rows,
+      recent_orders: allOrders.rows
+    });
+  } catch (error) {
+    console.error('Debug DB error:', error);
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
 // Helper functions
 async function getDashboardStats() {
   const stats = {};
