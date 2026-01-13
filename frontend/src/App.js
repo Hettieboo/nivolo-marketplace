@@ -343,7 +343,7 @@ const BuyerPage = () => {
           price: listing.listing_type === 'auction' ? listing.starting_bid : listing.price,
           type: listing.listing_type,
           image: listing.image_paths && listing.image_paths.length > 0 ? 
-            (listing.image_paths[0].startsWith('http') ? listing.image_paths[0] : `http://localhost:5001${listing.image_paths[0]}`) :
+            (listing.image_paths[0].startsWith('http') ? listing.image_paths[0] : `https://diligent-encouragement-production.up.railway.app${listing.image_paths[0]}`) :
             'https://via.placeholder.com/400x300?text=No+Image'
         }));
         setFeaturedItems(featured);
@@ -1109,7 +1109,7 @@ const AuctionPage = () => {
                 type: 'auction',
                 timeLeft: listing.auction_end_time ? formatTimeRemaining(listing.auction_end_time) : null,
                 image: listing.image_paths && listing.image_paths.length > 0 ? 
-                  (listing.image_paths[0].startsWith('http') ? listing.image_paths[0] : `http://localhost:5001${listing.image_paths[0]}`) :
+                  (listing.image_paths[0].startsWith('http') ? listing.image_paths[0] : `https://diligent-encouragement-production.up.railway.app${listing.image_paths[0]}`) :
                   'https://via.placeholder.com/400x300?text=No+Image',
                 category: 'Auction'
               };
@@ -1352,7 +1352,7 @@ const MarketplaceGrid = () => {
             type: 'buy-now',
             timeLeft: null,
             image: listing.image_paths && listing.image_paths.length > 0 ? 
-              (listing.image_paths[0].startsWith('http') ? listing.image_paths[0] : `http://localhost:5001${listing.image_paths[0]}`) :
+              (listing.image_paths[0].startsWith('http') ? listing.image_paths[0] : `https://diligent-encouragement-production.up.railway.app${listing.image_paths[0]}`) :
               'https://via.placeholder.com/400x300?text=No+Image',
             category: 'General'
           }));
@@ -2802,7 +2802,7 @@ const ListingCard = ({ listing, isOwner }) => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/300x200?text=No+Image';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5001${imagePath}`;
+    return `https://diligent-encouragement-production.up.railway.app${imagePath}`;
   };
 
   // Parse image paths if they're stored as JSON string
@@ -2953,7 +2953,7 @@ const BidCard = ({ bid }) => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/300x200?text=No+Image';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5001${imagePath}`;
+    return `https://diligent-encouragement-production.up.railway.app${imagePath}`;
   };
 
   const getStatusColor = () => {
@@ -3052,7 +3052,7 @@ const PurchaseCard = ({ purchase }) => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/300x200?text=No+Image';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5001${imagePath}`;
+    return `https://diligent-encouragement-production.up.railway.app${imagePath}`;
   };
 
   return (
@@ -3193,7 +3193,7 @@ const ProductDetailsPage = () => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/600x400?text=No+Image';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5001${imagePath}`;
+    return `https://diligent-encouragement-production.up.railway.app${imagePath}`;
   };
 
   const nextImage = () => {
@@ -3694,7 +3694,7 @@ const CheckoutPage = () => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/150x150?text=No+Image';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5001${imagePath}`;
+    return `https://diligent-encouragement-production.up.railway.app${imagePath}`;
   };
 
   // Common styles object to ensure consistency
