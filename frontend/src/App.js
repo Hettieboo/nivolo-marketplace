@@ -298,29 +298,6 @@ function App() {
   {/* Auth Buttons */}
   <AuthButtons />
 </div>
-<div style={{
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  color: 'white',
-  padding: '1rem 2rem',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-  flexWrap: 'wrap',
-  gap: '1rem'
-}}>
-            {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <img 
-                src="/Novolologo1.svg" 
-                alt="Nivolo Refind Logo" 
-                style={{ 
-                  height: '77px', 
-                  width: 'auto',
-                  borderRadius: '4px'
-                }} 
-              />
-            </div>
 
             {/* Navigation */}
             <nav style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
