@@ -26,7 +26,7 @@ router.post('/seed', async (req, res) => {
       status: 'approved'
     }));
     
-    // Insert products
+    // NO SAFETY CHECK - Just insert the products
     let inserted = 0;
     const errors = [];
     
@@ -38,7 +38,7 @@ router.post('/seed', async (req, res) => {
             listing_type, auction_end_time, image_paths, status, created_at
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `, [
-          require('uuid').v4(), // Generate ID
+          require('uuid').v4(), // Generate unique ID
           product.seller_id,
           product.title,
           product.description,
@@ -64,6 +64,7 @@ router.post('/seed', async (req, res) => {
       success: true,
       message: 'Database seeded successfully',
       inserted: inserted,
+      total: inserted,
       errors: errors.length > 0 ? errors : undefined
     });
     
@@ -74,20 +75,3 @@ router.post('/seed', async (req, res) => {
 });
 
 module.exports = router;
-```
-
-## This will create:
-- **Sample Product 2** - $100 (image 2)
-- **Sample Product 3** - $150 (image 3 - the product photo)
-- **Sample Product 4** - $200 (image 4 - golden frame mirror)
-- **Sample Product 5** - $250 (image 5 - suitcase)
-
-So you'll end up with **5 total products** in your marketplace (the existing Product 1 + these 4 new ones).
-
-## Next steps - same as before:
-
-1. **Update the seed file on GitHub** with this code
-2. **Commit the changes**
-3. **Trigger the seed endpoint** with a POST request to:
-```
-   https://diligent-encouragement-production.up.railway.app/api/seed
