@@ -2,52 +2,121 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/database');
 
-router.post('/create-user', async (req, res) => {
-  try {
-    const userId = 'b694dd70-620b-4c25-a4a6-b32874270dfc';
-    const email = 'seller@nivolo.com';
-    const password_hash = '$2b$10$abcdefghijklmnopqrstuvwxyz1234567890';
-    
-    const checkUser = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
-    
-    if (checkUser.rows.length > 0) {
-      return res.json({ message: 'User already exists', userId });
-    }
-    
-    await db.query(
-      'INSERT INTO users (id, email, password_hash, role, is_admin) VALUES ($1, $2, $3, $4, $5)',
-      [userId, email, password_hash, 'seller', false]
-    );
-    
-    res.json({ message: 'Test user created successfully', userId });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
+// Temporary seed endpoint - REMOVE AFTER USE
 router.post('/seed', async (req, res) => {
   try {
     console.log('🌱 Starting database seeding...');
     
+    // Your Cloudinary URLs
     const cloudinaryImages = [
+      'https://res.cloudinary.com/dylxle0dq/image/upload/v1768286524/images-1767780162195-900590149_k7yh5x.jpg',
       'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg',
-      'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png'
+      'https://res.cloudinary.com/dylxle0dq/image/upload/v1768311131/images-1767458331658-405423621_zm3jd9.png'
     ];
     
-    const sampleProducts = cloudinaryImages.map((url, index) => ({
-      title: `Sample Product ${index + 1}`,
-      description: `This is a sample description for product ${index + 1}.`,
-      price: (index + 1) * 50,
-      listing_type: 'fixed_price',
-      image_paths: [url],
-      seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
-      status: 'approved'
-    }));
+    // Create varied product listings
+    const sampleProducts = [
+      {
+        title: 'Vintage Leather Jacket',
+        description: 'Classic brown leather jacket in excellent condition. Genuine leather with brass zippers. Size: Medium',
+        price: 150.00,
+        listing_type: 'fixed_price',
+        image_paths: [cloudinaryImages[0]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Designer Sunglasses',
+        description: 'Polarized designer sunglasses with UV protection. Comes with original case and cleaning cloth.',
+        price: 89.99,
+        listing_type: 'fixed_price',
+        image_paths: [cloudinaryImages[1]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Rare Collectible Watch',
+        description: 'Limited edition timepiece from 2020. Automatic movement, sapphire crystal. Perfect condition with box and papers.',
+        starting_bid: 200.00,
+        listing_type: 'auction',
+        auction_end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        image_paths: [cloudinaryImages[2]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Handcrafted Leather Wallet',
+        description: 'Premium full-grain leather wallet with multiple card slots and bill compartment. Handmade with attention to detail.',
+        price: 45.00,
+        listing_type: 'fixed_price',
+        image_paths: [cloudinaryImages[0]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Retro Gaming Console',
+        description: 'Classic gaming console from the 90s. Fully functional with original controllers and cables. Great for collectors!',
+        starting_bid: 75.00,
+        listing_type: 'auction',
+        auction_end_time: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
+        image_paths: [cloudinaryImages[1]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Professional Camera Lens',
+        description: '50mm f/1.8 prime lens. Sharp images with beautiful bokeh. Compatible with Canon EF mount. Includes lens cap and hood.',
+        price: 275.00,
+        listing_type: 'fixed_price',
+        image_paths: [cloudinaryImages[2]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Vintage Vinyl Record Player',
+        description: 'Restored vintage turntable with new needle. Belt-drive system with adjustable speed. Sounds amazing!',
+        starting_bid: 120.00,
+        listing_type: 'auction',
+        auction_end_time: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+        image_paths: [cloudinaryImages[0]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Smart Fitness Watch',
+        description: 'Latest model with heart rate monitor, GPS, and water resistance. Tracks all your activities. Like new condition.',
+        price: 199.99,
+        listing_type: 'fixed_price',
+        image_paths: [cloudinaryImages[1]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Antique Desk Lamp',
+        description: 'Beautiful brass desk lamp from the 1950s. Fully functional with new wiring. Perfect for vintage decor enthusiasts.',
+        price: 65.00,
+        listing_type: 'fixed_price',
+        image_paths: [cloudinaryImages[2]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      },
+      {
+        title: 'Limited Edition Sneakers',
+        description: 'Rare colorway from 2022 collaboration. Size 10. Never worn, includes original box and tags. Deadstock condition.',
+        starting_bid: 180.00,
+        listing_type: 'auction',
+        auction_end_time: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+        image_paths: [cloudinaryImages[0]],
+        seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
+        status: 'approved'
+      }
+    ];
     
+    // Check if already seeded
     const countResult = await db.query('SELECT COUNT(*) as count FROM listings');
     const count = parseInt(countResult.rows[0].count);
     
-    if (count > 0) {
+    if (count >= 10) {
       console.log(`✅ Database already has ${count} listings. Skipping seed.`);
       return res.json({ 
         message: 'Database already seeded', 
@@ -55,6 +124,11 @@ router.post('/seed', async (req, res) => {
       });
     }
     
+    // Delete existing listings to reseed
+    await db.query('DELETE FROM listings');
+    console.log('🗑️ Cleared existing listings');
+    
+    // Insert products
     let inserted = 0;
     const errors = [];
     
@@ -70,9 +144,9 @@ router.post('/seed', async (req, res) => {
           product.title,
           product.description,
           product.price || null,
-          null,
+          product.starting_bid || null,
           product.listing_type,
-          null,
+          product.auction_end_time || null,
           JSON.stringify(product.image_paths),
           product.status,
           new Date().toISOString()
