@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../config/database');
+const { db } = require('./config/database');
+const { v4: uuidv4 } = require('uuid');
 
-// Temporary seed endpoint - REMOVE AFTER USE
-router.post('/seed', async (req, res) => {
+// NEW seed endpoint with different route
+router.post('/seed-new', async (req, res) => {
   try {
-    console.log('🌱 Starting database seeding...');
+    console.log('🌱 Starting database seeding (NEW)...');
     
-    // Your NEW Cloudinary URLs - 4 new products only
     const cloudinaryImages = [
       'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png',
       'https://res.cloudinary.com/dylxle0dq/image/upload/v1768343952/71rOW8EUKSL._AC_SY695__ove8eu.jpg',
@@ -15,18 +15,16 @@ router.post('/seed', async (req, res) => {
       'https://res.cloudinary.com/dylxle0dq/image/upload/v1768343952/suitcase-8510536_1280_jkwjmv.jpg'
     ];
     
-    // Automatically generate product data
     const sampleProducts = cloudinaryImages.map((url, index) => ({
-      title: `Sample Product ${index + 2}`, // Start at 2 since Product 1 exists
+      title: `Sample Product ${index + 2}`,
       description: `This is a sample description for product ${index + 2}.`,
-      price: (index + 2) * 50, // $100, $150, $200, $250
+      price: (index + 2) * 50,
       listing_type: 'fixed_price',
       image_paths: [url],
       seller_id: 'b694dd70-620b-4c25-a4a6-b32874270dfc',
       status: 'approved'
     }));
     
-    // NO SAFETY CHECK - Just insert the products
     let inserted = 0;
     const errors = [];
     
@@ -38,11 +36,11 @@ router.post('/seed', async (req, res) => {
             listing_type, auction_end_time, image_paths, status, created_at
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `, [
-          require('uuid').v4(), // Generate unique ID
+          uuidv4(),
           product.seller_id,
           product.title,
           product.description,
-          product.price || null,
+          product.price,
           null,
           product.listing_type,
           null,
@@ -58,13 +56,12 @@ router.post('/seed', async (req, res) => {
       }
     }
     
-    console.log(`\n🎉 Seeding complete! Added ${inserted} products.`);
+    console.log(`🎉 Seeding complete! Added ${inserted} products.`);
     
     res.json({
       success: true,
       message: 'Database seeded successfully',
       inserted: inserted,
-      total: inserted,
       errors: errors.length > 0 ? errors : undefined
     });
     
@@ -72,6 +69,11 @@ router.post('/seed', async (req, res) => {
     console.error('❌ Seeding failed:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// Keep old endpoint
+router.post('/seed', async (req, res) => {
+  res.json({ message: 'Use /api/seed-new instead' });
 });
 
 module.exports = router;
