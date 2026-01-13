@@ -27,6 +27,80 @@ const AuthButtons = () => {
   };
 
   return (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      gap: '1rem',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-end',
+      minWidth: '200px'
+    }}>
+      {isAuthenticated ? (
+        <>
+          {user?.is_admin && (
+            <a href="/admin" style={{ 
+              color: 'white', 
+              textDecoration: 'none', 
+              padding: '0.5rem 1rem',
+              background: 'rgba(239, 68, 68, 0.2)',
+              border: '2px solid rgba(239, 68, 68, 0.5)',
+              borderRadius: '20px',
+              fontWeight: '500',
+              fontSize: '13px',
+              whiteSpace: 'nowrap'
+            }}>
+              Admin
+            </a>
+          )}
+          <button 
+            onClick={handleLogout}
+            style={{ 
+              color: 'white', 
+              background: 'rgba(255,255,255,0.2)', 
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '20px',
+              fontWeight: '600',
+              fontSize: '13px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Logout
+          </button>
+        </>
+      ) : (
+        <>
+          <a href="/auth?mode=signup" style={{ 
+            color: 'white', 
+            textDecoration: 'none', 
+            padding: '0.5rem 1rem',
+            background: 'transparent',
+            border: '2px solid rgba(255,255,255,0.3)',
+            borderRadius: '20px',
+            fontWeight: '500',
+            fontSize: '13px',
+            whiteSpace: 'nowrap'
+          }}>
+            Sign Up
+          </a>
+          <a href="/auth" style={{ 
+            color: 'white', 
+            textDecoration: 'none', 
+            padding: '0.5rem 1rem',
+            background: 'rgba(255,255,255,0.2)', 
+            borderRadius: '20px',
+            fontSize: '13px',
+            whiteSpace: 'nowrap'
+          }}>
+            Sign In
+          </a>
+        </>
+      )}
+    </div>
+  );
+};
+  return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
       {isAuthenticated ? (
         <>
@@ -265,15 +339,18 @@ function App() {
           </div>
 
           {/* Main Header */}
-          <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            padding: '1rem 2rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-          }}>
+              {/* Main Header */}
+<div style={{
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  color: 'white',
+  padding: '1rem 2rem',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+  flexWrap: 'wrap',
+  gap: '1rem'
+}}>
             {/* Logo */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <img 
