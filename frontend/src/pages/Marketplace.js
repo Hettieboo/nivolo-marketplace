@@ -48,8 +48,8 @@ const Marketplace = () => {
     if (imagePaths[0].startsWith('http')) {
       return imagePaths[0];
     }
-    // Otherwise, it's from uploads folder
-    return `${process.env.REACT_APP_API_URL.replace('/api', '')}${imagePaths[0]}`;
+    // Otherwise, it's from uploads folder - hardcoded Railway URL
+    return `https://diligent-encouragement-production.up.railway.app${imagePaths[0]}`;
   };
 
   if (loading) {
