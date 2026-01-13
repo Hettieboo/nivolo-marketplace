@@ -5,6 +5,8 @@ const API_BASE_URL = process.env.REACT_APP_API_URL ||
                      process.env.NEXT_PUBLIC_API_URL || 
                      'http://localhost:5000/api';
 
+console.log('🔧 API Base URL:', API_BASE_URL); // Debug log
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -65,7 +67,9 @@ export const authAPI = {
 
 export const listingAPI = {
   getListings: async () => {
+    console.log('📡 Fetching listings from:', API_BASE_URL + '/listings');
     const response = await api.get('/listings');
+    console.log('📦 Listings received:', response.data);
     return response.data;
   },
   
