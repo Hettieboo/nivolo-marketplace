@@ -331,7 +331,7 @@ const BuyerPage = () => {
 
   const fetchFeaturedItems = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings`);
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings`);
       const data = await response.json();
       
       if (response.ok) {
@@ -1076,7 +1076,7 @@ const AuctionPage = () => {
 
   const fetchAuctions = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings`);
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings`);
       const data = await response.json();
       
       if (response.ok) {
@@ -1089,7 +1089,7 @@ const AuctionPage = () => {
               
               // Fetch current highest bid
               try {
-                const bidsResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/bids/${listing.id}`);
+                const bidsResponse = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/bids/${listing.id}`);
                 if (bidsResponse.ok) {
                   const bidsData = await bidsResponse.json();
                   if (bidsData.bids && bidsData.bids.length > 0) {
@@ -1337,7 +1337,7 @@ const MarketplaceGrid = () => {
 
   const fetchListings = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings`);
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings`);
       const data = await response.json();
       
       if (response.ok) {
@@ -1578,7 +1578,7 @@ const ProductCard = ({ item }) => {
                 
                 const bidAmount = prompt(`Current bid: $${item.price}\nEnter your bid amount:`);
                 if (bidAmount && parseFloat(bidAmount) > item.price) {
-                  fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/bids`, {
+                  fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/bids`, {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -1710,7 +1710,7 @@ const AuthPage = () => {
       }
 
       const endpoint = isLogin ? 'login' : 'register';
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/auth/${endpoint}`, {
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/auth/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1938,7 +1938,7 @@ const SellPage = () => {
       });
 
       // Call backend API
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings`, {
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -2419,7 +2419,7 @@ const ProfilePage = () => {
       setLoading(true);
       
       // Fetch user listings
-      const listingsResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings/user/my-listings`, {
+      const listingsResponse = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings/user/my-listings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -2431,7 +2431,7 @@ const ProfilePage = () => {
       }
 
       // Fetch user purchases
-      const purchasesResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/payment/orders`, {
+      const purchasesResponse = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/payment/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -2443,7 +2443,7 @@ const ProfilePage = () => {
       }
 
       // Fetch user bids
-      const bidsResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/bids/user/my-bids`, {
+      const bidsResponse = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/bids/user/my-bids`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -2915,7 +2915,7 @@ const ListingCard = ({ listing, isOwner }) => {
                 if (window.confirm('Are you sure you want to delete this listing?')) {
                   try {
                     const token = localStorage.getItem('token');
-                    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings/${listing.id}`, {
+                    const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings/${listing.id}`, {
                       method: 'DELETE',
                       headers: { 'Authorization': `Bearer ${token}` }
                     });
@@ -3150,13 +3150,13 @@ const ProductDetailsPage = () => {
 
   const fetchProductDetails = async (productId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings/${productId}`);
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings/${productId}`);
       const data = await response.json();
       
       if (response.ok) {
         // Fetch current highest bid for auctions
         if (data.listing.listing_type === 'auction') {
-          const bidsResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/bids/${productId}`);
+          const bidsResponse = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/bids/${productId}`);
           if (bidsResponse.ok) {
             const bidsData = await bidsResponse.json();
             const highestBid = bidsData.bids.length > 0 ? Math.max(...bidsData.bids.map(b => b.bid_amount)) : data.listing.starting_bid;
@@ -3485,7 +3485,7 @@ const ProductDetailsPage = () => {
                     const bidAmount = prompt('Enter your bid amount:');
                     if (bidAmount && parseFloat(bidAmount) > 0) {
                       try {
-                        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/bids`, {
+                        const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/bids`, {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'application/json',
@@ -3577,7 +3577,7 @@ const CheckoutPage = () => {
 
   const fetchProductDetails = async (productId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings/${productId}`);
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings/${productId}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -3640,7 +3640,7 @@ const CheckoutPage = () => {
       const productId = pathParts[pathParts.length - 1];
 
       // Step 1: Create payment intent (mock for now)
-      const paymentIntentResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/payment/create-intent`, {
+      const paymentIntentResponse = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/payment/create-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -3662,7 +3662,7 @@ const CheckoutPage = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Step 2: Confirm payment and create order
-      const confirmResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/payment/confirm`, {
+      const confirmResponse = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/payment/confirm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

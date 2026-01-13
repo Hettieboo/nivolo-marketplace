@@ -20,7 +20,7 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+      const baseUrl = 'https://diligent-encouragement-production.up.railway.app/api';
 
       // Fetch dashboard stats
       const statsResponse = await fetch(`${baseUrl}/admin/dashboard`, {
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
   const handleListingAction = async (listingId, action) => {
     try {
       const token = localStorage.getItem('token');
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+      const baseUrl = 'https://diligent-encouragement-production.up.railway.app/api';
       
       let endpoint, method = 'PUT';
       

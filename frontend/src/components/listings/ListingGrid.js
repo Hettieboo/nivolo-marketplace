@@ -14,7 +14,7 @@ const ListingGrid = () => {
 
   const fetchListings = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/listings`);
+      const response = await fetch(`${'https://diligent-encouragement-production.up.railway.app/api'}/listings`);
       const data = await response.json();
       
       if (response.ok) {
