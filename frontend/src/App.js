@@ -365,7 +365,7 @@ function App() {
             </div>
 
             {/* Navigation */}
-            <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+            <nav style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <a href="/" style={{ 
                 color: 'white', 
                 textDecoration: 'none', 
