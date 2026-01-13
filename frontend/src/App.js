@@ -339,7 +339,49 @@ function App() {
           </div>
 
           {/* Main Header */}
-              {/* Main Header */}
+<div style={{
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  color: 'white',
+  padding: '0.75rem 1rem',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+  flexWrap: 'wrap',
+  gap: '0.5rem'
+}}>
+  {/* Logo */}
+  <div style={{ display: 'flex', alignItems: 'center', minWidth: '120px' }}>
+    <img 
+      src="/Novolologo1.svg" 
+      alt="Nivolo Refind Logo" 
+      style={{ 
+        height: '50px',
+        width: 'auto',
+        borderRadius: '4px'
+      }} 
+    />
+  </div>
+
+  {/* Navigation */}
+  <nav style={{ 
+    display: 'flex', 
+    gap: '0.5rem',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    flex: 1
+  }}>
+    <a href="/" style={{ color: 'white', textDecoration: 'none', padding: '0.4rem 0.6rem', borderRadius: '6px', fontWeight: '500', fontSize: '12px', whiteSpace: 'nowrap' }}>Home</a>
+    <a href="/blog" style={{ color: 'white', textDecoration: 'none', padding: '0.4rem 0.6rem', borderRadius: '6px', fontWeight: '500', fontSize: '12px', whiteSpace: 'nowrap' }}>Blog</a>
+    <a href="/real-estate" style={{ color: 'white', textDecoration: 'none', padding: '0.4rem 0.6rem', borderRadius: '6px', fontWeight: '500', fontSize: '12px', whiteSpace: 'nowrap' }}>Buyer</a>
+    <a href="/sell" style={{ color: 'white', textDecoration: 'none', padding: '0.4rem 0.6rem', borderRadius: '6px', fontWeight: '500', fontSize: '12px', whiteSpace: 'nowrap' }}>Seller</a>
+    <a href="/contact" style={{ color: 'white', textDecoration: 'none', padding: '0.4rem 0.6rem', borderRadius: '6px', fontWeight: '500', fontSize: '12px', whiteSpace: 'nowrap' }}>Contact</a>
+  </nav>
+
+  {/* Auth Buttons */}
+  <AuthButtons />
+</div>
 <div style={{
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   color: 'white',
