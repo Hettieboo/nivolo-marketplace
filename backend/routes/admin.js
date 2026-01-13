@@ -8,7 +8,6 @@ router.post('/promote-first-admin', async (req, res) => {
   try {
     const { email, secret } = req.body;
     
-    // Use a secret key to prevent unauthorized access
     if (secret !== process.env.ADMIN_SECRET) {
       return res.status(403).json({ error: 'Invalid secret' });
     }
@@ -35,7 +34,7 @@ router.post('/promote-first-admin', async (req, res) => {
   }
 });
 
-// Debug endpoint - see raw database data
+// Debug endpoint
 router.get('/debug-db', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const users = await db.query('SELECT COUNT(*) as count FROM users');
@@ -61,7 +60,6 @@ router.get('/debug-db', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// GET /api/admin/dashboard - Get dashboard statistics
 router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const stats = await getDashboardStats();
@@ -72,7 +70,6 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// GET /api/admin/users - Get all users
 router.get('/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const users = await getAllUsers();
@@ -83,7 +80,6 @@ router.get('/users', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// GET /api/admin/listings - Get all listings
 router.get('/listings', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const listings = await getAllListings();
@@ -94,7 +90,6 @@ router.get('/listings', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// GET /api/admin/payments - Get all payments/orders
 router.get('/payments', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const payments = await getAllPayments();
@@ -105,7 +100,6 @@ router.get('/payments', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// PUT /api/admin/listings/:id/reject - Reject listing
 router.put('/listings/:id/reject', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const listingId = req.params.id;
@@ -117,11 +111,9 @@ router.put('/listings/:id/reject', authenticateToken, requireAdmin, async (req, 
   }
 });
 
-// Helper functions
 async function getDashboardStats() {
   const stats = {};
   
-  // Run all queries in parallel
   const [
     totalUsers,
     totalListings,
@@ -228,8 +220,3 @@ async function rejectListing(listingId) {
 }
 
 module.exports = router;
-```
-
-Now save, commit, push to Railway, wait for deploy, then visit:
-```
-https://diligent-encouragement-production.up.railway.app/api/admin/debug-db
