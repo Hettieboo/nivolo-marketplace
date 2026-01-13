@@ -3,6 +3,38 @@ const router = express.Router();
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const { db } = require('../config/database');
 
+// POST /api/admin/promote-first-admin - One-time use to create first admin
+router.post('/promote-first-admin', async (req, res) => {
+  try {
+    const { email, secret } = req.body;
+    
+    // Use a secret key to prevent unauthorized access
+    if (secret !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ error: 'Invalid secret' });
+    }
+    
+    const result = await db.query(
+      `UPDATE users 
+       SET role = 'admin', is_admin = true
+       WHERE email = $1
+       RETURNING id, email, role, is_admin`,
+      [email]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({ 
+      message: 'User promoted to admin',
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Promote admin error:', error);
+    res.status(500).json({ error: 'Failed to promote user' });
+  }
+});
+
 // GET /api/admin/dashboard - Get dashboard statistics
 router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
   try {
