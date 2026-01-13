@@ -3,6 +3,7 @@ const router = express.Router();
 const { db } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 
@@ -22,10 +23,10 @@ router.post('/register', async (req, res) => {
     
     // Insert user into PostgreSQL
     const result = await db.query(
-      `INSERT INTO users (email, password, role, created_at)
-       VALUES ($1, $2, $3, NOW())
+      `INSERT INTO users (id, email, password_hash, role, created_at)
+       VALUES ($1, $2, $3, $4, NOW())
        RETURNING id, email, role, is_admin, created_at`,
-      [email, hashedPassword, role]
+      [uuidv4(), email, hashedPassword, role]
     );
     
     const user = result.rows[0];
@@ -53,7 +54,7 @@ router.post('/login', async (req, res) => {
     const user = result.rows[0];
     
     // Compare password
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -61,8 +62,8 @@ router.post('/login', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     
-    // Remove password before returning
-    delete user.password;
+    // Remove password_hash before returning
+    delete user.password_hash;
     
     res.json({ user, token });
   } catch (error) {
