@@ -2,18 +2,38 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/database');
 
-// Temporary seed endpoint - REMOVE AFTER USE
+router.post('/create-user', async (req, res) => {
+  try {
+    const userId = 'b694dd70-620b-4c25-a4a6-b32874270dfc';
+    const email = 'seller@nivolo.com';
+    const password_hash = '$2b$10$abcdefghijklmnopqrstuvwxyz1234567890';
+    
+    const checkUser = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
+    
+    if (checkUser.rows.length > 0) {
+      return res.json({ message: 'User already exists', userId });
+    }
+    
+    await db.query(
+      'INSERT INTO users (id, email, password_hash, role, is_admin) VALUES ($1, $2, $3, $4, $5)',
+      [userId, email, password_hash, 'seller', false]
+    );
+    
+    res.json({ message: 'Test user created successfully', userId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/seed', async (req, res) => {
   try {
     console.log('🌱 Starting database seeding...');
     
-    // Your Cloudinary URLs
     const cloudinaryImages = [
       'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172678/images-1767781790406-890804133_uexiqx.jpg',
       'https://res.cloudinary.com/dylxle0dq/image/upload/v1768172673/images-1767780162193-372417661_engz9i.png'
     ];
     
-    // Automatically generate product data
     const sampleProducts = cloudinaryImages.map((url, index) => ({
       title: `Sample Product ${index + 1}`,
       description: `This is a sample description for product ${index + 1}.`,
@@ -24,7 +44,6 @@ router.post('/seed', async (req, res) => {
       status: 'approved'
     }));
     
-    // Check if already seeded
     const countResult = await db.query('SELECT COUNT(*) as count FROM listings');
     const count = parseInt(countResult.rows[0].count);
     
@@ -36,7 +55,6 @@ router.post('/seed', async (req, res) => {
       });
     }
     
-    // Insert products
     let inserted = 0;
     const errors = [];
     
