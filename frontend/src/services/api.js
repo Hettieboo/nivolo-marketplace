@@ -1,11 +1,9 @@
 import axios from 'axios';
 
-// Works for both Create React App and Vercel
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-                     process.env.NEXT_PUBLIC_API_URL || 
-                     'http://localhost:5000/api';
+// Hardcoded for now - will fix env variable later
+const API_BASE_URL = 'https://diligent-encouragement-production.up.railway.app/api';
 
-console.log('🔧 API Base URL:', API_BASE_URL); // Debug log
+console.log('🔧 API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
