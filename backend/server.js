@@ -49,7 +49,7 @@ const adminRoutes = require('./routes/admin');         // admin routes
 const paymentRoutes = require('./routes/payment');     // real payment endpoints.
 const paymentsRoutes = require('./routes/payments');   // placeholder/future endpoints
 const bidRoutes = require('./routes/bids');            // bidding routes
-const seedRoutes = require('./scripts/seedData');      // seed route
+const seedRoutes = require('./seed-database');         // seed route - FIXED PATH
 
 // Mount routes
 app.use('/api/auth', authRoutes);
