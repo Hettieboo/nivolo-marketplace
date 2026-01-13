@@ -4,7 +4,6 @@ const { db } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 
 // Register endpoint
@@ -21,12 +20,15 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Insert user into PostgreSQL
+    // Generate UUID for user
+    const userId = uuidv4();
+    
+    // Insert user into PostgreSQL - USING password_hash COLUMN
     const result = await db.query(
       `INSERT INTO users (id, email, password_hash, role, created_at)
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING id, email, role, is_admin, created_at`,
-      [uuidv4(), email, hashedPassword, role]
+      [userId, email, hashedPassword, role]
     );
     
     const user = result.rows[0];
@@ -53,7 +55,7 @@ router.post('/login', async (req, res) => {
     
     const user = result.rows[0];
     
-    // Compare password
+    // Compare password - USING password_hash COLUMN
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
