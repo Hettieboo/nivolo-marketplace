@@ -1070,11 +1070,7 @@ const AuctionPage = () => {
   const [auctions, setAuctions] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    fetchAuctions();
-  }, []);
-
-  const fetchAuctions = async () => {
+  const fetchAuctions = React.useCallback(async () => {
     try {
       const response = await fetch('https://diligent-encouragement-production.up.railway.app/api/listings');
       const data = await response.json();
@@ -1123,7 +1119,11 @@ const AuctionPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // useCallback with empty deps since it doesn't depend on any props/state
+
+  React.useEffect(() => {
+    fetchAuctions();
+  }, [fetchAuctions]);
 
   const formatTimeRemaining = (endTime) => {
     const now = new Date();
@@ -1329,13 +1329,8 @@ const HomePage = () => {
 const MarketplaceGrid = () => {
   const [products, setProducts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
 
-  React.useEffect(() => {
-    fetchListings();
-  }, []);
-
-  const fetchListings = async () => {
+  const fetchListings = React.useCallback(async () => {
     try {
       const response = await fetch('https://diligent-encouragement-production.up.railway.app/api/listings');
       const data = await response.json();
@@ -1369,21 +1364,11 @@ const MarketplaceGrid = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // useCallback with empty deps
 
-  const formatTimeRemaining = (endTime) => {
-    const now = new Date();
-    const end = new Date(endTime);
-    const diff = end - now;
-    
-    if (diff <= 0) return 'Ended';
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    
-    if (days > 0) return `${days}d ${hours}h`;
-    return `${hours}h`;
-  };
+  React.useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
 
   const getSampleProducts = () => [];
 
@@ -1867,7 +1852,6 @@ const SellPage = () => {
   const [loading, setLoading] = React.useState(false);
   const [message, setMessage] = React.useState({ type: '', text: '' });
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [user, setUser] = React.useState(null);
 
   // Check authentication on component mount
   React.useEffect(() => {
@@ -1876,7 +1860,6 @@ const SellPage = () => {
     
     if (token && userData) {
       setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
     }
   }, []);
 
@@ -2355,7 +2338,20 @@ const Footer = () => {
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {['Browse Items', 'Start Selling', 'How It Works', 'Success Stories'].map(link => (
                 <li key={link} style={{ marginBottom: '0.75rem' }}>
-                  <a href="#" style={{ color: '#a0aec0', textDecoration: 'none' }}>{link}</a>
+                  <button 
+                    onClick={(e) => e.preventDefault()} 
+                    style={{ 
+                      color: '#a0aec0', 
+                      textDecoration: 'none',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      font: 'inherit'
+                    }}
+                  >
+                    {link}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -2369,7 +2365,20 @@ const Footer = () => {
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {['Help Center', 'Contact Us', 'Privacy Policy', 'Terms of Service'].map(link => (
                 <li key={link} style={{ marginBottom: '0.75rem' }}>
-                  <a href="#" style={{ color: '#a0aec0', textDecoration: 'none' }}>{link}</a>
+                  <button 
+                    onClick={(e) => e.preventDefault()} 
+                    style={{ 
+                      color: '#a0aec0', 
+                      textDecoration: 'none',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      font: 'inherit'
+                    }}
+                  >
+                    {link}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -3541,7 +3550,6 @@ const CheckoutPage = () => {
   const [error, setError] = React.useState(null);
   const [processing, setProcessing] = React.useState(false);
   const [orderComplete, setOrderComplete] = React.useState(false);
-  const [user, setUser] = React.useState(null);
   const [billingInfo, setBillingInfo] = React.useState({
     firstName: '',
     lastName: '',
@@ -3563,8 +3571,6 @@ const CheckoutPage = () => {
       window.location.href = '/auth';
       return;
     }
-    
-    setUser(JSON.parse(userData));
     
     // Get product ID from URL
     const pathParts = window.location.pathname.split('/');
