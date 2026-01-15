@@ -4,6 +4,7 @@ const { db } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
 
 // Register endpoint
@@ -33,8 +34,12 @@ router.post('/register', async (req, res) => {
     
     const user = result.rows[0];
     
-    // Generate JWT token
-    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    // Generate JWT token - NOW INCLUDING is_admin
+    const token = jwt.sign({ 
+      userId: user.id, 
+      role: user.role,
+      is_admin: user.is_admin || false 
+    }, JWT_SECRET, { expiresIn: '7d' });
     
     res.status(201).json({ user, token });
   } catch (error) {
@@ -61,8 +66,12 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    // Generate JWT token
-    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    // Generate JWT token - NOW INCLUDING is_admin
+    const token = jwt.sign({ 
+      userId: user.id, 
+      role: user.role,
+      is_admin: user.is_admin || false 
+    }, JWT_SECRET, { expiresIn: '7d' });
     
     // Remove password_hash before returning
     delete user.password_hash;
