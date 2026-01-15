@@ -22,7 +22,8 @@ const authenticateToken = (req, res, next) => {
 
 // Middleware to check if user is admin
 const requireAdmin = (req, res, next) => {
-  if (!req.user || !req.user.is_admin) {
+  // Check both is_admin flag and role field
+  if (!req.user || (!req.user.is_admin && req.user.role !== 'admin')) {
     return res.status(403).json({ error: 'Admin access required' });
   }
   
